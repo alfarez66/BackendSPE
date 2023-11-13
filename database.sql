@@ -43,3 +43,66 @@ CREATE TABLE users (
     access VARCHAR(50),
     date TIMESTAMP
 );
+
+
+-- Create the new table to store the completeness scores
+CREATE TABLE report_completeness (
+    reportId SERIAL PRIMARY KEY,
+    completeness_score FLOAT
+);
+
+-- Calculate and insert the completeness score for each report
+INSERT INTO report_completeness (reportId, completeness_score)
+SELECT reportId,
+    (CASE
+        WHEN description IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN status IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN image IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN location IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN assignee IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN date IS NOT NULL THEN 1 ELSE 0 END) / 6.0
+FROM report;
+
+-- Display the contents of the new completeness table
+SELECT * FROM report_completeness;
+
+
+-- version 2
+
+-- Create the new table to store the completeness scores
+CREATE TABLE report_completeness (
+    reportId SERIAL PRIMARY KEY,
+    date DATE,
+    completeness_score FLOAT
+);
+
+-- Calculate and insert the completeness score for each report, and save it based on the date
+INSERT INTO report_completeness (reportId, date, completeness_score)
+SELECT reportId, date,
+(CASE
+        WHEN NULLIF(description, '') IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN NULLIF(status, '') IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN image IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN NULLIF(location, '') IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN NULLIF(assignee, '') IS NOT NULL THEN 1 ELSE 0 END +
+    CASE
+        WHEN date IS NOT NULL THEN 1 ELSE 0 END) / 6.0
+FROM report;
+
+-- Display the contents of the new completeness table
+SELECT * FROM report_completeness;
+
+
+ALTER TABLE report
+ADD COLUMN image_path VARCHAR(255);
+
+
